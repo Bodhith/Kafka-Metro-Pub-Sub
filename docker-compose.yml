@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  pub_server:
+    build: ./publisher/
+    image: server_image
+    container_name: pub_server_container
+    ports:
+      - "5000:5000"
+    environment:
+      SERVER_TYPE: pub_server
+    depends_on: 
+      - kafka
+  
+  sub_server:
+    build: ./subscriber/
+    image: client_image
+    container_name: sub_server_container
+    ports:
+      - "5001:5000"
+    environment:
+      SERVER_TYPE: sub_server
+    depends_on: 
+      - kafka

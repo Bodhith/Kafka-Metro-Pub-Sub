@@ -1,0 +1,16 @@
+mysql --host=localhost --user=user --password=password nfta_db
+
+mysql -u root -p
+set @@global.time_zone = "-04:00";  // Not changing
+
+
+mysqldump -u root -p nfta_db > ./database/nfta_db_backup.sql
+
+mysql --host=localhost --user=user --password=password nfta_db < nfta_db_backup.sql
+
+
+create table users (id int primary key auto_increment, user_id int, role bool);
+create table topics (id int primary key auto_increment, name varchar(20));
+create table alerts(id int primary key auto_increment, message varchar(100), recorded_time timestamp default current_timestamp, topic_id int);
+create table user_subs (id int primary key auto_increment, user_id int, topic_id int, status bool);
+
