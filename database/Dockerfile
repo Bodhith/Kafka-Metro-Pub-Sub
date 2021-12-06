@@ -5,4 +5,4 @@ COPY . ./application
 WORKDIR /application
 RUN pip install -r requirements.txt
 EXPOSE 4000
-CMD [ "python", "services/app.py" ]
+CMD [ "python", "app.py" ]
