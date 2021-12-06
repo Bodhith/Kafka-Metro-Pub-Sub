@@ -4,7 +4,7 @@ const app = express()
 const port = 5000
 
 app.get('/', function(req, res) {
-    res.send("publisher", 200)
+    res.sendFile("F:\\COLLEGE\\DS\\PROJECT 2\\publisher\\index.html")
 });
 
 app.listen(port, () => {
