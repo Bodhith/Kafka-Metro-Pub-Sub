@@ -67,6 +67,13 @@ def advertise_newmessage(message):
     db.commit()
     cursor.close()
 
+def notify_newmessage(topic_id, message):
+    query = '''insert into alerts(topic_id, message) VALUES(%d, "%s")'''%(topic_id, message)
+    cursor = db.cursor(buffered=True)
+    cursor.execute(query)
+    db.commit()
+    cursor.close()
+
 def pub_topic(user_id):
     query = """SELECT topic_id FROM pub_topic where user_id = %d"""%(user_id)
     cursor = db.cursor(buffered=True)
