@@ -11,8 +11,6 @@ services:
       - ./publisher:/application/
     environment:
       SERVER_TYPE: pub_server
-    depends_on: 
-      - kafka
 
   sub_server:
     build: ./subscriber/
@@ -24,8 +22,6 @@ services:
       - ./subscriber:/application
     environment:
       SERVER_TYPE: sub_server
-    depends_on: 
-      - kafka
 
   Custom_API:
     build: ./database/
