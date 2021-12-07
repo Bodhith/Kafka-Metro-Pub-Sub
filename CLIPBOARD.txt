@@ -1,17 +1,5 @@
-  zookeeper:
-    image: wurstmeister/zookeeper
-    container_name: zookeeper_container
-    ports:
-      - "2181:2181"
-  
-  kafka:
-    image: wurstmeister/kafka
-    container_name: kafka_container
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: localhost
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+docker-compose scale kafka=3
+
 
   pub_server:
     build: ./publisher/
@@ -19,8 +7,45 @@
     container_name: pub_server_container
     ports:
       - "5000:5000"
+    volumes:
+      - ./publisher:/application/
     environment:
       SERVER_TYPE: pub_server
-    depends_on: 
-      - kafka
- 
+
+  sub_server:
+    build: ./subscriber/
+    image: client_image
+    container_name: sub_server_container
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./subscriber:/application
+    environment:
+      SERVER_TYPE: sub_server
+
+  Custom_API:
+    build: ./database/
+    image: api_image
+    container_name: api_container
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./database/services:/application
+    environment:
+      SERVER_TYPE: api_server
+    depends_on:
+      - database
+
+  database:
+    image: "mysql"
+    command: "--default-authentication-plugin=mysql_native_password"
+    container_name: database_container
+    volumes:
+      - ./database:/database
+    ports: 
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: 'nfta_db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
