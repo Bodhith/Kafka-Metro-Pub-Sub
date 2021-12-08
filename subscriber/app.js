@@ -21,7 +21,11 @@ const server = http.createServer(app);
 
 var ssn;
 
-var consumerTopics = [];
+var consumerTopics = [
+    {
+        topic: "station_code_1"
+    }
+];
 
 
 app.get('/:userId', function(req, res) {

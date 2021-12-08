@@ -44,13 +44,14 @@ app.post('/advertise', function(req, ress) {
             advertisement: req.body.advertisement
         })
     }, function(err, res, body) {
+        pushDataToKafka("station_code_1", req.body.message)
         ress.send(204);
     });
 });
 
 app.post('/notify', function(req, ress) {
     request.post({
-        url: "http://Custom_API:4000/norify",
+        url: "http://Custom_API:4000/notify",
         body: JSON.stringify({
             topicId: req.body.topicId,
             message: req.body.message
