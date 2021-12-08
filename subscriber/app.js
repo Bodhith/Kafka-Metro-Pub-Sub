@@ -69,6 +69,8 @@ wss.on("connection", function(ws) {
     });
     const Consumer = kafka.Consumer;
 
+    var consumer;
+
     request.get(`http://Custom_API:4000/getSubTopics/${ssn.userId}`, function(err, res, body) {   
         let topics = JSON.parse(body);
         for(topicId in topics) {
@@ -77,7 +79,7 @@ wss.on("connection", function(ws) {
                 topic: "station_code_"+topicId.toString()
             });
         }
-        var consumer = new Consumer(
+        consumer = new Consumer(
             client,
             consumerTopics,
             {
