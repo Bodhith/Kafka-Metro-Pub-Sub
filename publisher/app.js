@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({
 })); 
 
 app.get('/', function(req, res) {
-    pushDataToKafka("station_code_10", "something up");
+    pushDataToKafka("station_code_10", "something came up");
     res.sendFile(path.join(__dirname,"index.html"));
 });
 
