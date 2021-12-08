@@ -1,4 +1,3 @@
-
 const ws = new WebSocket(`ws://${location.hostname}:5001`);
 
 ws.addEventListener("open", function() {

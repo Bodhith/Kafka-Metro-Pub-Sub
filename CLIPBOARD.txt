@@ -1,4 +1,4 @@
-
+Chnage trail to open and close connection at every function
 
 request.post({
         url: "http://Custom_API:4000/subscribe",

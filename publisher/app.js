@@ -66,10 +66,18 @@ app.listen(port, () => {
   }
 );
 
-let i = 0;
-for(;i<=10; i++) {
-    createTopic(i);
-}
+const getAllTopics = () => {
+    const client = new Kafka.KafkaClient({
+        kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"
+    });
+    const admin = new Kafka.Admin(client);
+
+    admin.listTopics( (err, res) => {
+        for(topic in res[1].metadata) {
+            console.log(topic);
+        }
+    });
+};
 
 const createTopic = (topicId) => {
     const client = new Kafka.KafkaClient({
@@ -83,7 +91,6 @@ const createTopic = (topicId) => {
 
     admin.listTopics( (err, res) => {
         for(topic in res[1].metadata) {
-/*             console.log(topic); */
             if( topic == topicId ) {
                 topicExists = true;
             }

@@ -27,6 +27,7 @@ var consumerTopics = [
     }
 ];
 
+
 app.get('/:userId', function(req, res) {
     let userId = req.params.userId;
     if(!userId) {
@@ -35,6 +36,7 @@ app.get('/:userId', function(req, res) {
     if(!ssn) {
         //getAlerts();
         ssn = req.session;
+        ssn.userId = userId;
     }
     res.sendFile(path.join(__dirname,"index.html"));
 });
@@ -58,6 +60,8 @@ app.get('/getOldFeedAlerts/:topicId', function(req, ress) {
     });
 });
 
+
+
 const wss = new WebSocket.Server({server});
     
 wss.on("connection", function(ws) {
@@ -69,23 +73,26 @@ wss.on("connection", function(ws) {
     });
     const Consumer = kafka.Consumer;
     
-    var consumer = new Consumer(
-        client,
-        consumerTopics,
-        {
-            autoCommit: true,
-            fetchMaxWaitMs: 1000,
-            fetchMaxBytes: 1024 * 1024,
-            encoding: 'utf8',
-            // fromOffset: false
-        }
-    );
-    
-    consumer.on('message', function(message) {
-        console.log('kafka ', message.value);
-        ws.send(JSON.stringify({
-            alert: message.value
-        }));
+    request.get(`http://Custom_API:4000/getSubTopics/${ssn.userId}`, function(err, res, body) {   
+        let topics = JSON.parse(body);
+        var consumer = new Consumer(
+            client,
+            consumerTopics,
+            {
+                autoCommit: true,
+                fetchMaxWaitMs: 1000,
+                fetchMaxBytes: 1024 * 1024,
+                encoding: 'utf8',
+                // fromOffset: false
+            }
+        );
+        
+        consumer.on('message', function(message) {
+            console.log('kafka ', message.value);
+            ws.send(JSON.stringify({
+                alert: message.value
+            }));
+        });
     });
 
     ws.on("message", function(data) {

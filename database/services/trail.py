@@ -85,8 +85,15 @@ def pub_topic(user_id):
 
 # Get Subbed Topics
 def subscribed_topics(user_id):
+    dbb = mysql.connector.connect(
+        host = "database",
+        user = "user",
+        password = "password",
+        database = "nfta_db",
+        autocommit=True # just in case, missed somewhere
+    )
     query = """SELECT topic_id FROM user_subs where user_id = %d and status =1"""%(user_id)
-    cursor = db.cursor(buffered=True)
+    cursor = dbb.cursor(buffered=True)
     cursor.execute(query)
     l=[]
     for x in cursor:
