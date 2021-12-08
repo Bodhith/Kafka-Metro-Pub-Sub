@@ -21,11 +21,7 @@ const server = http.createServer(app);
 
 var ssn;
 
-var consumerTopics = [
-    {
-        topic: "station_code_3"
-    }
-];
+var consumerTopics = [];
 
 
 app.get('/:userId', function(req, res) {
@@ -72,9 +68,15 @@ wss.on("connection", function(ws) {
         kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"
     });
     const Consumer = kafka.Consumer;
-    
+
     request.get(`http://Custom_API:4000/getSubTopics/${ssn.userId}`, function(err, res, body) {   
         let topics = JSON.parse(body);
+        for(topicId in topics) {
+            console.log(topicId);
+            consumerTopics.push({
+                topic: "station_code_"+topicId.toString()
+            });
+        }
         var consumer = new Consumer(
             client,
             consumerTopics,
