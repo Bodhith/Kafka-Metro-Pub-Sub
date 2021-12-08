@@ -25,6 +25,7 @@ function getSubTopics() {
             console.log("Subbed Topics", topicId, topic);
             $("#subbedTopics").append(`<li>${topicName}</li>`);
             $.get(`/getOldFeedAlerts/${topicId}`, function(data) {
+                console.log(topicId, data);
                 $("#oldAlerts").append(`<li>${topicName}=>${data[0]}=>${data[1]}</li>`);
             });
         });

@@ -23,7 +23,7 @@ var ssn;
 
 var consumerTopics = [
     {
-        topic: "station_code_10"
+        topic: "station_code_3"
     }
 ];
 

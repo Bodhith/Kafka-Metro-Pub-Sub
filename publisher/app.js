@@ -14,7 +14,6 @@ app.use(bodyParser.urlencoded({
 })); 
 
 app.get('/', function(req, res) {
-/*     pushDataToKafka("station_code_10", "something came up"); */
     res.sendFile(path.join(__dirname,"index.html"));
 });
 
@@ -32,6 +31,7 @@ app.post('/publish', function(req, ress) {
             message: req.body.message
         })
     }, function(err, res, body) {
+        console.log("sent to db");
         pushDataToKafka("station_code_"+req.body.topicId.toString(), req.body.message)
         ress.send(204);
     });
@@ -66,12 +66,15 @@ app.listen(port, () => {
   }
 );
 
+let i = 0;
+for(;i<=10; i++) {
+    createTopic(i);
+}
 
-
-const pushDataToKafka = (topicId, message) => {
-    const Producer = Kafka.Producer;
-    const client = new Kafka.KafkaClient({kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"});
-    const producer = new Producer(client,  {requireAcks: 0, partitionerType: 2});
+const createTopic = (topicId) => {
+    const client = new Kafka.KafkaClient({
+        kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"
+    });
     const admin = new Kafka.Admin(client);
 
     var topicExists;
@@ -80,6 +83,7 @@ const pushDataToKafka = (topicId, message) => {
 
     admin.listTopics( (err, res) => {
         for(topic in res[1].metadata) {
+/*             console.log(topic); */
             if( topic == topicId ) {
                 topicExists = true;
             }
@@ -97,7 +101,15 @@ const pushDataToKafka = (topicId, message) => {
             });
         }
     });
+}
 
+const pushDataToKafka = (topicId, message) => {
+    const Producer = Kafka.Producer;
+    const client = new Kafka.KafkaClient({
+        kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"
+    });
+    const producer = new Producer(client,  {requireAcks: 0, partitionerType: 2});
+    
     let payloadToKafkaTopic = [
         {
             topic:topicId,
@@ -111,5 +123,5 @@ const pushDataToKafka = (topicId, message) => {
         });
     });
   
-  };
+};
 
