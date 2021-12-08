@@ -34,7 +34,15 @@ function advertise() {
 }
 
 function notify() {
-
+    $.post("/notify",
+        {
+            topicId: $("#stations").val(),
+            message: $("#message").val()
+        },
+        function(data) {
+            
+        }
+    );
 }
 
-/* getAllTopics(); */
+getAllTopics();

@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({
 })); 
 
 app.get('/', function(req, res) {
-    pushDataToKafka("station_code_10", "something came up");
+/*     pushDataToKafka("station_code_10", "something came up"); */
     res.sendFile(path.join(__dirname,"index.html"));
 });
 
@@ -48,6 +48,19 @@ app.post('/advertise', function(req, ress) {
     });
 });
 
+app.post('/notify', function(req, ress) {
+    request.post({
+        url: "http://Custom_API:4000/norify",
+        body: JSON.stringify({
+            topicId: req.body.topicId,
+            message: req.body.message
+        })
+    }, function(err, res, body) {
+        pushDataToKafka("station_code_"+req.body.topicId.toString(), req.body.message)
+        ress.send(204);
+    });
+});
+
 app.listen(port, () => {
     console.log(`Publisher Application listening at http://localhost:${port}`)
   }
@@ -65,7 +78,7 @@ const pushDataToKafka = (topicId, message) => {
 
     topicExists = false;
 
-/*     admin.listTopics( (err, res) => {
+    admin.listTopics( (err, res) => {
         for(topic in res[1].metadata) {
             if( topic == topicId ) {
                 topicExists = true;
@@ -83,7 +96,8 @@ const pushDataToKafka = (topicId, message) => {
                 console.log("error", error, "result", result);
             });
         }
-    }); */
+    });
+
     let payloadToKafkaTopic = [
         {
             topic:topicId,

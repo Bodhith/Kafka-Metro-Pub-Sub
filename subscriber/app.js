@@ -21,6 +21,12 @@ const server = http.createServer(app);
 
 var ssn;
 
+var consumerTopics = [
+    {
+        topic: "station_code_10"
+    }
+];
+
 app.get('/:userId', function(req, res) {
     let userId = req.params.userId;
     if(!userId) {
@@ -39,7 +45,16 @@ app.get('/getSubTopics/:userId', function(req, ress) {
         res.send(404);
     }
     request.get(`http://Custom_API:4000/getSubTopics/${userId}`, function(err, res, body) {   
-        ress.send(JSON.parse(body), 200);
+        let topics = JSON.parse(body);
+        ress.send(topics, 200);
+    });
+});
+
+app.get('/getOldFeedAlerts/:topicId', function(req, ress) {
+    let topicId = req.params.topicId;
+    request.get(`http://Custom_API:4000/getAlertsFromTopic/${topicId}`, function(err, res, body) {   
+        let topicAlerts = JSON.parse(body);
+        ress.send(topicAlerts, 200);
     });
 });
 
@@ -48,56 +63,15 @@ const wss = new WebSocket.Server({server});
 wss.on("connection", function(ws) {
     console.log("New Client Connected");
 
-    ws.on("message", function(data) {
-        console.log("Message recieved from Client", data);
+    const client = new kafka.KafkaClient({
+        idleConnection: 24 * 60 * 60 * 1000,
+        kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"
     });
-
-    ws.on("close", function() {
-        console.log("Client Disconnected");
-    });
-
-    const client = new kafka.KafkaClient({idleConnection: 24 * 60 * 60 * 1000,  kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"});
     const Consumer = kafka.Consumer;
     
-    let consumer = new Consumer(
-    client,
-    [{ topic: "station_code_10", partition: 0 }],
-    {
-        autoCommit: true,
-        fetchMaxWaitMs: 1000,
-        fetchMaxBytes: 1024 * 1024,
-        encoding: 'utf8',
-        // fromOffset: false
-    }
-    );
-    
-    consumer.on('message', function(message) {
-        console.log('kafka ', message.value);
-        ws.send(message.value)
-    });
-});
-
-/* const getAlerts = function() {
-    console.log("getAlerts");
-    const wss = new WebSocket.Server({server});
-    
-    wss.on("connection", function(ws) {
-        console.log("New Client Connected");
-    
-        ws.on("message", function(data) {
-            console.log("Message recieved from Client", data);
-        });
-    
-        ws.on("close", function() {
-            console.log("Client Disconnected");
-        });
-
-        const client = new kafka.KafkaClient({idleConnection: 24 * 60 * 60 * 1000,  kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"});
-        const Consumer = kafka.Consumer;
-        
-        let consumer = new Consumer(
+    var consumer = new Consumer(
         client,
-        [{ topic: "station_code_10", partition: 0 }],
+        consumerTopics,
         {
             autoCommit: true,
             fetchMaxWaitMs: 1000,
@@ -105,15 +79,72 @@ wss.on("connection", function(ws) {
             encoding: 'utf8',
             // fromOffset: false
         }
-        );
-        
-        consumer.on('message', function(message) {
-            console.log('kafka ', message.value);
-            ws.send(message.value)
-        });
+    );
+    
+    consumer.on('message', function(message) {
+        console.log('kafka ', message.value);
+        ws.send(JSON.stringify({
+            alert: message.value
+        }));
     });
-}
- */
+
+    ws.on("message", function(data) {
+        callFor = JSON.parse(data.toString())
+        console.log("Message recieved from Client", callFor);
+        if("subscribe" in callFor) {
+            let topicId;
+            let userId;
+
+            userId = callFor.subscribe.userId;
+            topicId = callFor.subscribe.topicId;
+
+            request.post({
+                url: "http://Custom_API:4000/subscribe",
+                body: JSON.stringify({
+                    subId: userId,
+                    topicId: topicId
+                })
+            }, function(err, res, body) {
+                if(consumer) {
+                    consumer.addTopics(["sation_code_"+topicId.toString()], function(err, added) {
+                        console.log("Added New Topic to Consumer");
+                        ws.send(JSON.stringify({
+                            updateTopics: true
+                        }));
+                    });
+                }
+            });
+        }
+        else if("unsubscribe" in callFor) {
+            let topicId;
+            let userId;
+
+            userId = callFor.unsubscribe.userId;
+            topicId = callFor.unsubscribe.topicId;
+
+            request.post({
+                url: "http://Custom_API:4000/unsubscribe",
+                body: JSON.stringify({
+                    subId: userId,
+                    topicId: topicId
+                })
+            }, function(err, res, body) {
+                if(consumer) {
+                    consumer.removeTopics(["sation_code_"+topicId.toString()], function(err, removed) {
+                        console.log("Removed Topic from Consumer");
+                        ws.send(JSON.stringify({
+                            updateTopics: true
+                        }));
+                    });
+                }
+            });
+        }
+    });
+
+    ws.on("close", function() {
+        console.log("Client Disconnected");
+    });
+});
 
 server.listen(port, () => {
     console.log(`Subscriber Application started on port ${server.address().port}`);
