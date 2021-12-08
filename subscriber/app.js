@@ -18,12 +18,14 @@ app.use(bodyParser.urlencoded({
 var ssn;
 
 app.get('/:userId', function(req, res) {
-    ssn = req.session;
     let userId = req.params.userId;
     if(!userId) {
         res.send(404);
     }
-    getAlerts();
+    if(!ssn) {
+        getAlerts();
+        ssn = req.session;
+    }
     res.sendFile(path.join(__dirname,"index.html"));
 });
 
@@ -38,9 +40,6 @@ app.get('/getSubTopics/:userId', function(req, ress) {
 });
 
 const getAlerts = function() {
-    if( ssn != "undefined" ) {
-        return ;
-    }
     const client = new kafka.KafkaClient({idleConnection: 24 * 60 * 60 * 1000,  kafkaHost: "kafka-1:19092,kafka-2:29092,kafka-3:39092"});
     const Consumer = kafka.Consumer;
     

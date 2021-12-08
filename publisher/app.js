@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({
 })); 
 
 app.get('/', function(req, res) {
-    pushDataToKafka("station_code_10", "hello 10th station, bla");
+    pushDataToKafka("station_code_10", "something up");
     res.sendFile(path.join(__dirname,"index.html"));
 });
 
@@ -65,34 +65,32 @@ const pushDataToKafka = (topicId, message) => {
 
     topicExists = false;
 
-    admin.listTopics((err, res) => {
+/*     admin.listTopics( (err, res) => {
         for(topic in res[1].metadata) {
-            console.log(topic);
             if( topic == topicId ) {
                 topicExists = true;
             }
         }
-    });
 
-    if( !topicExists ) {
-        var topicsToCreate = [{
-            topic: topicId,
-            partitions: 2,
-            replicationFactor: 2
-        }]
-
-        client.createTopics(topicsToCreate, function(error, result) {
-            console.log("error", error, "result", result);
-        });
-    }
-       
+        if( !topicExists ) {
+            var topicsToCreate = [{
+                topic: topicId,
+                partitions: 2,
+                replicationFactor: 2
+            }]
+    
+            client.createTopics(topicsToCreate, function(error, result) {
+                console.log("error", error, "result", result);
+            });
+        }
+    }); */
     let payloadToKafkaTopic = [
         {
             topic:topicId,
             messages: message
         }
     ];
-
+    
     producer.on('ready', async function() {
         await producer.send(payloadToKafkaTopic, (err, data) => {
                 console.log('data: ', data);
