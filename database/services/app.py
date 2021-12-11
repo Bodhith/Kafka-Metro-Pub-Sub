@@ -2,7 +2,7 @@ import os
 import json
 import requests
 import mysql.connector
-from trail import *
+from queryService import *
 from flask import Flask, render_template, jsonify, request
 
 app = Flask(__name__)
